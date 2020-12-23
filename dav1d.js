@@ -62,7 +62,15 @@ export function create(opts = {}) {
     return Promise.reject(new Error("Either wasmURL or wasmData shall be provided"));
   }
   const runtime = getRuntime();
-  const imports = {env: runtime};
+  const imports = {
+    env: runtime,
+    wasi_snapshot_preview1: {
+      fd_write: () => 0,
+      proc_exit: () => 0,
+      fd_seek: () => 0,
+      fd_close: () => 0
+    }
+  };
   return fetchAndInstantiate(opts.wasmData, opts.wasmURL, imports).then(wasm => {
     const d = new Dav1d({wasm, runtime});
     d._init();

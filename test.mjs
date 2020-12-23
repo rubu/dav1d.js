@@ -1,18 +1,19 @@
 import dav1d from "./dav1d.mjs";
 
-(async () => {
+const isNode = typeof global !== "undefined";
+const wasmPath = "dav1d.debug.wasm";
 
-  const isNode = typeof global !== "undefined";
+(async () => {
   let wasmData = null;
   let obu = null;
   let fs = null;
 
   if (isNode) {
     fs = await import("fs");
-    wasmData = fs.readFileSync("dav1d.wasm");
+    wasmData = fs.readFileSync(wasmPath);
     obu = fs.readFileSync("test.obu");
   } else {
-    wasmData = await fetch("dav1d.wasm").then(res => res.arrayBuffer());
+    wasmData = await fetch(wasmPath).then(res => res.arrayBuffer());
     obu = await fetch("test.obu").then(res => res.arrayBuffer());
   }
   const d = await dav1d.create({wasmData});

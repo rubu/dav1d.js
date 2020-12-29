@@ -1,13 +1,20 @@
 import dav1d from "./dav1d.mjs";
 
 const isNode = typeof global !== "undefined";
-const wasmPath = "dav1d.debug.wasm";
 
 (async () => {
   let obu = null;
   let fs = null;
-  let debug = true;
-  let opts = {debug};
+  let debug = false;
+  if (isNode) {
+    debug = process.env.NODE_ENV === 'development'
+  } else {
+    const urlParams = new URLSearchParams(window.location.search);
+    debug = urlParams.get('debug') !== null;
+  }
+  const wasmPath = debug ? "dav1d.debug.wasm" : "dav1d.wasm";
+  console.log(`using dav1d wasm build from ${wasmPath}`)
+  let opts = {};
 
   if (isNode) {
     fs = await import("fs");

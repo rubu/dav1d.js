@@ -1,7 +1,7 @@
 /build/
 /out/
-/dav1d.wasm
 /*.map
 /test
 /*.obu
 /*.bmp
+/*.wasm

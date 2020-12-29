@@ -1,0 +1,14 @@
+[binaries]
+c = 'emcc'
+ar = 'emar'
+strip = ''
+
+[properties]
+c_args = ['-O0', '-g4', '-s' ,'ASSERTIONS=1', '-s', 'SAFE_HEAP=1']
+ar_args = ['-g4']
+
+[host_machine]
+system = 'linux'
+cpu_family = 'wasm32'
+cpu = 'wasm32'
+endian = 'little'

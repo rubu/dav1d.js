@@ -1,6 +1,6 @@
 // Must be in sync with emcc settings!
-const TOTAL_MEMORY = 64 * 1024 * 1024; // TODO(Kagami): Find optimal amount
-const TOTAL_STACK = 5626096; // TODO(Kagami): Find why bigger than 5MB
+const TOTAL_MEMORY = 256 * 1024 * 1024; // TODO(Kagami): Find optimal amount
+const TOTAL_STACK = 64 * 1024  * 1024; // TODO(Kagami): Find why bigger than 5MB
 const PAGE_SIZE = 64 * 1024;
 const TABLE_SIZE = 271; // NOTE(Kagami): Depends on the number of
                         // function pointers in target library, seems
@@ -37,6 +37,8 @@ function getRuntime() {
     pthread_cond_broadcast: (cond) => 0,
     pthread_join: (thread, res) => 0,
     pthread_create: (thread, attr, func, arg) => 0,
+    segfault: () => 0,
+    alignfault: () => 0
     // Emscripten debug.
     // abort: () => {},
     // __lock: () => {},

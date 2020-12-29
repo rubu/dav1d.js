@@ -13,7 +13,7 @@ $(dav1d_wasm_release_library_path):
 	meson dav1d $(dav1d_wasm_release_build_path) \
 		--prefix="$(CURDIR)/out/wasm/release" \
 		--libdir=lib \
-		--cross-file=cross_file.txt \
+		--cross-file=cross_file_release.txt \
 		--default-library=static \
 		--buildtype=release \
 		-Dbitdepths="['8']" \
@@ -27,7 +27,7 @@ $(dav1d_wasm_debug_library_path):
 	meson dav1d $(dav1d_wasm_debug_build_path) \
 		--prefix="$(CURDIR)/out/wasm/debug" \
 		--libdir=lib \
-		--cross-file=cross_file.txt \
+		--cross-file=cross_file_debug.txt \
 		--default-library=static \
 		--buildtype=debug \
 		-Dbitdepths="['8']" \
@@ -35,7 +35,7 @@ $(dav1d_wasm_debug_library_path):
 		-Dbuild_tools=false \
 		-Dbuild_tests=false \
 		-Dlogging=false \
-	&& ninja -C $(dav1d_wasm_debug_build_path) install
+	&& ninja -v -C $(dav1d_wasm_debug_build_path) install
 
 out/native/release/tools/dav1d:
 	meson dav1d $(dav1d_native_release_build_path) \
@@ -51,13 +51,12 @@ out/native/release/tools/dav1d:
 	&& ninja -C $(dav1d_native_release_build_path) install
 
 dav1d.wasm: $(dav1d_wasm_release_library_path) dav1d.c
-	emcc $^ -DNDEBUG -O3 --llvm-lto 3 -Iout/wasm/release//include -Wl,--shared-memory,--no-check-features --no-entry -s STANDALONE_WASM=1 -o $@ \
+	emcc $^ -DNDEBUG -O3 --llvm-lto 3 -Iout/wasm/release/include -Wl,--shared-memory,--no-check-features --no-entry -o $@ \
 		-s TOTAL_MEMORY=67108864 -s MALLOC=emmalloc
 
 dav1d.debug.wasm: $(dav1d_wasm_debug_library_path) dav1d.c
-	EMCC_DEBUG=2 emcc $^ -g4 -O0 -Iout/wasm/debug/include -Wl,--shared-memory,--no-check-features --no-entry -s STANDALONE_WASM=1 -o $@ \
-		-s TOTAL_MEMORY=67108864 -s MALLOC=emmalloc
-
+	EMCC_DEBUG=2 emcc $^ -g4 -O0 -Iout/wasm/debug/include -Wl,--shared-memory,--no-check-features --no-entry -s ASSERTIONS=1 -s SAFE_HEAP=1 --source-map-base http:\/\/localhost:8000\/ -gseparate-dwarf=dav1d.debug.dwarf.wasm -o $@ \
+		-s TOTAL_MEMORY=256mb -s TOTAL_STACK=64mb -s MALLOC=emmalloc
 
 .PHONY: test
 test: dav1d.c

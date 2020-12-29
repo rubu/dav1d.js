@@ -4,19 +4,24 @@ const isNode = typeof global !== "undefined";
 const wasmPath = "dav1d.debug.wasm";
 
 (async () => {
-  let wasmData = null;
   let obu = null;
   let fs = null;
+  let debug = true;
+  let opts = {debug};
 
   if (isNode) {
     fs = await import("fs");
-    wasmData = fs.readFileSync(wasmPath);
+    opts.wasmData = fs.readFileSync(wasmPath);
     obu = fs.readFileSync("test.obu");
   } else {
-    wasmData = await fetch(wasmPath).then(res => res.arrayBuffer());
+    if (!debug) {
+      opts.wasmData = await fetch(wasmPath).then(res => res.arrayBuffer());
+    } else {
+      opts.wasmURL = `http://localhost:8000/${wasmPath}`
+    }
     obu = await fetch("test.obu").then(res => res.arrayBuffer());
   }
-  const d = await dav1d.create({wasmData});
+  const d = await dav1d.create(opts);
 
   console.time("bmp copy");
   const {width, height, data} = d.decodeFrameAsBMP(obu);

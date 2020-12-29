@@ -1,6 +1,6 @@
 [binaries]
 c = 'emcc'
-ar = 'llvm-ar'
+ar = 'emar
 strip = ''
 
 [properties]

@@ -5,30 +5,10 @@ const PAGE_SIZE = 64 * 1024;
 const TABLE_SIZE = 271; // NOTE(Kagami): Depends on the number of
                         // function pointers in target library, seems
                         // like no way to know in general case
+const isStandaloneWasm = true;
 
 function getRuntime() {
-  let dynamicTop = TOTAL_STACK;
-  const table = new WebAssembly.Table({
-    initial: TABLE_SIZE,
-    maximum: TABLE_SIZE,
-    element: "anyfunc",
-  });
-  const memory = new WebAssembly.Memory({
-    initial: TOTAL_MEMORY / PAGE_SIZE,
-    maximum: TOTAL_MEMORY / PAGE_SIZE,
-  });
-  const HEAPU8 = new Uint8Array(memory.buffer);
-  return {
-    table: table,
-    memory: memory,
-    sbrk: (increment) => {
-      const oldDynamicTop = dynamicTop;
-      dynamicTop += increment;
-      return oldDynamicTop;
-    },
-    emscripten_memcpy_big: (dest, src, num) => {
-      HEAPU8.set(HEAPU8.subarray(src, src+num), dest);
-    },
+  let runtime = {
     // Empty stubs for dav1d.
     pthread_cond_wait: (cond, mutex) => 0,
     pthread_cond_signal: (cond) => 0,
@@ -37,14 +17,42 @@ function getRuntime() {
     pthread_cond_broadcast: (cond) => 0,
     pthread_join: (thread, res) => 0,
     pthread_create: (thread, attr, func, arg) => 0,
-    segfault: () => 0,
-    alignfault: () => 0
+    segfault: () => {
+      console.log('segfault called')
+    },
+    alignfault: () => { 
+      console.log('alignfault called')
+    },
     // Emscripten debug.
     // abort: () => {},
     // __lock: () => {},
     // __unlock: () => {},
     // djs_log: (msg) => console.log(msg),
   };
+  if (isStandaloneWasm === false) {
+    let dynamicTop = TOTAL_STACK;
+    const table = new WebAssembly.Table({
+      initial: TABLE_SIZE,
+      maximum: TABLE_SIZE,
+      element: "anyfunc",
+    });
+    const memory = new WebAssembly.Memory({
+      initial: TOTAL_MEMORY / PAGE_SIZE,
+      maximum: TOTAL_MEMORY / PAGE_SIZE
+    });
+    const HEAPU8 = new Uint8Array(memory.buffer);
+    runtime.table = table;
+    runtime.memory = memory
+    runtime.sbrk = (increment) => {
+      const oldDynamicTop = dynamicTop;
+      dynamicTop += increment;
+      return oldDynamicTop;
+    };
+    runtime.emscripten_memcpy_big = (dest, src, num) => {
+      HEAPU8.set(HEAPU8.subarray(src, src+num), dest);
+    };
+  }
+  return runtime;
 }
 
 function fetchAndInstantiate(data, url, imports) {
@@ -88,7 +96,7 @@ class Dav1d {
 
   constructor({wasm, runtime}) {
     this.FFI = wasm.instance.exports;
-    this.buffer = runtime.memory.buffer;
+    this.buffer = runtime.memory ?? wasm.instance.exports.memory.buffer;
     this.HEAPU8 = new Uint8Array(this.buffer);
     this.ref = 0;
     this.lastFrameRef = 0;

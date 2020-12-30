@@ -1,6 +1,6 @@
 [binaries]
 c = 'emcc'
-ar = 'emar
+ar = 'emar'
 strip = ''
 
 [properties]

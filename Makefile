@@ -52,11 +52,11 @@ out/native/release/tools/dav1d:
 
 dav1d.wasm: $(dav1d_wasm_release_library_path) dav1d.c
 	emcc $^ -DNDEBUG -O3 --llvm-lto 3 -Iout/wasm/release/include -Wl,--shared-memory,--no-check-features --no-entry -o $@ \
-		-s TOTAL_MEMORY=67108864 -s MALLOC=emmalloc
+		-s TOTAL_MEMORY=256mb -s TOTAL_STACK=64mb
 
 dav1d.debug.wasm: $(dav1d_wasm_debug_library_path) dav1d.c
 	EMCC_DEBUG=2 emcc $^ -g4 -O0 -Iout/wasm/debug/include -Wl,--shared-memory,--no-check-features --no-entry -s ASSERTIONS=1 -s SAFE_HEAP=1 --source-map-base http:\/\/localhost:8000\/ -gseparate-dwarf=dav1d.debug.dwarf.wasm -o $@ \
-		-s TOTAL_MEMORY=256mb -s TOTAL_STACK=64mb -s MALLOC=emmalloc
+		-s TOTAL_MEMORY=256mb -s TOTAL_STACK=64mb
 
 .PHONY: test
 test: dav1d.c

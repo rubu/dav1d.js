@@ -1,6 +1,7 @@
 import dav1d from "./dav1d.mjs";
 
 const isNode = typeof global !== "undefined";
+const isStandaloneWasm = true;
 
 (async () => {
   let obu = null;
@@ -45,7 +46,7 @@ const isNode = typeof global !== "undefined";
   if (isNode) {
     fs.writeFileSync("test2.bmp", data2);
   } else {
-    const blob = new Blob([data2], {type: "image/bmp"});
+    const blob = new Blob(isStandaloneWasm ? [data] : [data2], {type: "image/bmp"});
     const blobURL = URL.createObjectURL(blob);
     const img = document.createElement("img");
     img.src = blobURL;
